@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AhhPitt main menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            margin-bottom: 40px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 20px;
+            font-size: 18px;
+            color: #fff;
+            background-color: #0078D4;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: #005a9e;
+        }
+    </style>
+</head>
+<body>
+    <h1>AhhPitt</h1>
+    <p>Pitt's MyPitt system is genuinely super dumb, especially the double authentication.</p>
+    <p>AhhPitt is a demo for a better Pitt convenience system. It includes guidance on food, news, course selection, and some little random games to help new students get to know the campus.</p>
+    <p>the data are collected from PittAPI</p>
+
+    <a class="btn" href="{% url 'news' %}">What's new</a>
+    <a class="btn" href="{% url 'dining' %}">Dining halls</a>
+</body>
+</html>

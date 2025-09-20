@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>News</title>
+</head>
+<body>
+    <h1>News</h1>
+    <ul>
+        {% for item in news_list %}
+        <li><a href="{{ item.link }}">{{ item.title }}</a></li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'index' %}">Return to homepage</a>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>dining halls</title>
+</head>
+<body>
+    <h1>Dining halls</h1>
+    <ul>
+        {% for item in dining_list %}
+        <li>
+            <strong>{{ item.name }}</strong> - status：{{ item.status }} - Open Hours：{{ item.hours }}
+            <p>If I got an hour after finishing other modules I will come back to add the menu and nutrition facts.</p>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'index' %}">return to homepage</a>
+</body>
+</html>
