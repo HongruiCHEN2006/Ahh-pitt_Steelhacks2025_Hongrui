@@ -1,16 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>News</title>
+    <meta charset="utf-8">
+    <title>Pitt News</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #333; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        a { text-decoration: none; color: #0073e6; }
+        a:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
-    <h1>News</h1>
+    <h1>Pitt 新闻</h1>
     <ul>
-        {% for item in news_list %}
-        <li><a href="{{ item.link }}">{{ item.title }}</a></li>
+        {% for news in news_list %}
+            <li>
+                <a href="{{ news.link }}" target="_blank">{{ news.title }}</a>
+            </li>
         {% endfor %}
     </ul>
-    <a href="{% url 'index' %}">Return to homepage</a>
 </body>
 </html>
