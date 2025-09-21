@@ -23,11 +23,25 @@
     #mindmap {
       flex: 1;
       height: 100vh;
+      position: relative;
     }
     .highlight {
       border-radius: 4px;
       padding: 2px 4px;
       color: #000;
+    }
+    /* 浮窗样式 */
+    #tooltip {
+      position: absolute;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      pointer-events: none;
+      font-size: 14px;
+      display: none;
+      max-width: 250px;
+      z-index: 1000;
     }
   </style>
 </head>
@@ -40,6 +54,7 @@
   </div>
 
   <div id="mindmap"></div>
+  <div id="tooltip"></div>
 
   <script>
     const data = {
@@ -48,20 +63,20 @@
         topic: "Arts & Sciences",
         children: [
           {
-            id: "artsci-gened",
-            topic: "General Education (需要3门)",
+            id: "Social Science",
+            topic: "Social Science (3 required)",
             children: [
-              
-            { id: "engcmp0200", topic: "ENGCMP 0200 - Seminar in Composition" },
-              { id: "stat0200", topic: "STAT 0200 - Basic Statistics" }
+              { id: "engcmp0200", topic: "ENGCMP 0200 - Seminar in Composition", info: "This is a writing seminar focusing on composition and analysis." },
+              { id: " Approved Philosophy Course", topic: " Approved Philosophy Course", info: " Approved Philosophy Course" },
+              { id: "ECON0100", topic: "ECON0100", info: "Introduction to Microeconomic Theory" },
             ]
           },
           {
             id: "artsci-natsci",
-            topic: "Natural Sciences (需要2门)",
+            topic: "Natural Sciences (2 required)",
             children: [
-              { id: "biosc0150", topic: "BIOSC 0150 - Biology 1" },
-              { id: "chem0110", topic: "CHEM 0110 - General Chemistry 1" }
+              { id: "biosc0150", topic: "BIOSC 0150 - Biology 1", info: "Fundamentals of biology: cells, genetics, and ecology." },
+              { id: "chem0110", topic: "CHEM 0110 - General Chemistry 1", info: "Basics of chemistry including stoichiometry and atomic structure." }
             ]
           }
         ]
@@ -72,20 +87,48 @@
         children: [
           {
             id: "bus-core",
-            topic: "Core Courses (需要5门)",
+            topic: "BSBA Core Courses (All required(which is dumb af))",
             children: [
-              { id: "busacc0030", topic: "BUSACC 0030 - Financial Accounting" },
-              { id: "busbis1060", topic: "BUSBIS 1060 - Data Analytics" },
-              { id: "stat0200", topic: "STAT 0200 - Basic Statistics" }
+              { id: "BUSSPP0020", topic: "BUSSPP0020", info: "MANAGING COMPLEX ENVIRONMENT" },
+              { id: "BUSBIS0100", topic: "BUSBIS0100", info: "Programming Essentials for Business Analytics" },
+              { id: "BUSQOM0101", topic: "BUSQOM0101", info: "Business Analytics 1" },
+              { id: "BUSQOM0102", topic: "BUSQOM0102", info: "Business Analytics 2." },
+              { id: "BUSACC0030", topic: "BUSACC0030", info: "Financial Accounting" },
+              { id: "BUSACC0040", topic: "BUSACC0040", info: "Managerial Accounting" },
+              { id: "BUSQOM0050", topic: "BUSQOM0050", info: "Decision Analytics" },
+              { id: "BUSENV0060", topic: "BUSENV0060", info: "Managerial Ethics and Stakeholder Management." },
+              { id: "BUSECN1010", topic: "BUSECN1010", info: "Managerial Economics" },
+              { id: "BUSORG1020", topic: "BUSORG1020", info: "Organizational Behavior" },
+              { id: "BUSORG1101", topic: "BUSORG1101", info: "Fundamentals of Business Communication" },
+              { id: "BUSFIN1030", topic: "BUSFIN1030", info: "Introduction to Finance" },
+              { id: "BUSMKT1040", topic: "BUSMKT1040", info: "Introduction to Marketing" },
+              { id: "BUSQOM1070", topic: "BUSQOM1070", info: "Operations Management" },
+              { id: "BUSSPP1080", topic: "BUSSPP1080", info: "Strategic Management" },
             ]
           },
           {
-            id: "bus-social",
-            topic: "Social Sciences (需要2门)",
+            id: "Humanities",
+            topic: "Humanities (2 courses required)",
             children: [
-              { id: "econ0100", topic: "ECON 0100 - Microeconomics" },
-              { id: "psy0010", topic: "PSY 0010 - Intro to Psychology" }
+              { id: "Approved Literature Course", topic: "Approved Literature Course", info: "Approved Literature Course" },
+              { id: "Approved Music/Art Course", topic: "Approved Music/Art Course", info: "Approved Music/Art Course." },
+              { id: " Approved Philosophy Course", topic: " Approved Philosophy Course", info: " Approved Philosophy Course" },
             ]
+          },
+          {
+            id: "English Composition",
+            topic: "English Composition(3 units needed)",
+            children: [
+              { id: "ENGCMP0200", topic: "ENGCMP0200", info: "SEMINAR IN COMPOSITION.Requirements:International Students required to take ENGCMP 0002 or 0003 or 0005 or 0010 or 0100 or 0150 or 0152 or ENG 0101 prior to enrollment; Enrollment not permitted if currently enrolled in ENGCMP 0200-level courses, FP 0003, or FP 0006." },
+              ]
+          },
+          {
+            id: "Economics",
+            topic: "Economics",
+            children: [
+            { id: "ECON0100", topic: "ECON0100", info: "Introduction to Microeconomic Theory" },
+            { id: "ECON0110", topic: "ECON0110", info: "Introduction to Macroeconomic Theory" },
+              ]
           }
         ]
       },
@@ -95,32 +138,32 @@
         children: [
           {
             id: "engr-core",
-            topic: "Engineering Core (需要4门)",
+            topic: "Engineering Core (4required)",
             children: [
-              { id: "engr0011", topic: "ENGR 0011 - Statics" },
-              { id: "engr0131", topic: "ENGR 0131 - Thermodynamics" }
+              { id: "engr0011", topic: "ENGR 0011 - Statics", info: "Fundamentals of forces, moments, and equilibrium." },
+              { id: "engr0131", topic: "ENGR 0131 - Thermodynamics", info: "Introduction to energy, heat, and work concepts." }
             ]
           },
           {
             id: "engr-math",
-            topic: "Math/Science (需要2门)",
+            topic: "Math/Science (2required)",
             children: [
-              { id: "math0220", topic: "MATH 0220 - Calculus I" },
-              { id: "stat0200", topic: "STAT 0200 - Basic Statistics" },
-              { id: "engr0131", topic: "ENGR 0131 - Thermodynamics" }
+              { id: "math0220", topic: "MATH 0220 - Calculus I", info: "Differentiation, integration, and applications." },
+              { id: "stat0200", topic: "STAT 0200 - Basic Statistics", info: "Intro to probability, distributions, and basic statistical inference." },
+              { id: "engr0131", topic: "ENGR 0131 - Thermodynamics", info: "Introduction to energy, heat, and work concepts." }
             ]
           }
         ]
       }
     };
 
-    const highlightColors = ['#ffc0cb', '#ffeb99', '#99ffcc', '#99ccff', '#ff99cc']; // 循环颜色
+    const highlightColors = ['#ffc0cb', '#ffeb99', '#99ffcc', '#99ccff', '#ff99cc'];
     let jm;
 
     function renderMindMap(selectedSchools) {
       const courseCount = {};
       const courseRenderCount = {};
-      const courseColors = {}; // 分配给每门重复课程的颜色
+      const courseColors = {};
       let colorIndex = 0;
       let idsToHighlight = [];
       let colorsToHighlight = [];
@@ -142,10 +185,9 @@
             courseRenderCount[baseId] = (courseRenderCount[baseId] || 0) + 1;
             const renderNum = courseRenderCount[baseId];
 
-            // 生成唯一 id
             course.id = baseId + "_r" + renderNum;
 
-            // 如果课程重复，分配颜色并高亮
+            // 重复课程高亮
             if (courseCount[baseId] > 1) {
               if (!courseColors[baseId]) {
                 courseColors[baseId] = highlightColors[colorIndex % highlightColors.length];
@@ -154,6 +196,11 @@
               if (renderNum > 1) course.topic += " *";
               idsToHighlight.push(course.id);
               colorsToHighlight.push(courseColors[baseId]);
+            }
+
+            // 将课程详情放到 HTML tooltip span
+            if (course.info) {
+              course.topic = `<span class="course-node" data-info="${course.info}">${course.topic}</span>`;
             }
           });
         });
@@ -186,6 +233,22 @@
       for (let i = 0; i < idsToHighlight.length; i++) {
         jm.set_node_color(idsToHighlight[i], colorsToHighlight[i], "#000000");
       }
+
+      // 添加悬浮提示逻辑
+      const tooltip = document.getElementById('tooltip');
+      document.querySelectorAll('.course-node').forEach(node => {
+        node.addEventListener('mouseenter', (e) => {
+          tooltip.innerText = node.getAttribute('data-info');
+          tooltip.style.display = 'block';
+        });
+        node.addEventListener('mousemove', (e) => {
+          tooltip.style.top = (e.pageY + 15) + 'px';
+          tooltip.style.left = (e.pageX + 15) + 'px';
+        });
+        node.addEventListener('mouseleave', () => {
+          tooltip.style.display = 'none';
+        });
+      });
     }
 
     // 初始无勾选

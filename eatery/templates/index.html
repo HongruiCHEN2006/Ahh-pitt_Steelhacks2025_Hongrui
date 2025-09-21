@@ -2,43 +2,124 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AhhPitt main menu</title>
+    <title>AhhPitt Main Menu</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e6f0ff, #d0e4ff); /* 明亮高科技背景 */
+            color: #111;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        header {
+            margin-top: 60px;
             text-align: center;
-            padding: 50px;
         }
-        h1 {
-            margin-bottom: 40px;
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #003DA5; /* Pitt Blue */
+            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
+
+        header p {
+            max-width: 700px;
+            margin: 10px auto;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333; /* 深灰更干爽 */
+        }
+
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 50px 0;
+            gap: 25px;
+        }
+
         .btn {
             display: inline-block;
-            padding: 15px 30px;
-            margin: 20px;
-            font-size: 18px;
-            color: #fff;
-            background-color: #0078D4;
+            padding: 18px 35px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #FFB81C; /* Pitt Gold文字 */
+            background: linear-gradient(135deg, #003DA5, #3399FF); /* Pitt Blue渐变 */
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 18px rgba(0,61,165,0.25);
+            position: relative;
+            overflow: hidden;
         }
+
         .btn:hover {
-            background-color: #005a9e;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,61,165,0.35);
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -75%;
+            width: 50%;
+            height: 100%;
+            background: rgba(255,184,28,0.2); /* Pitt Gold光感 */
+            transform: skewX(-25deg);
+            transition: all 0.5s;
+        }
+
+        .btn:hover::after {
+            left: 125%;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 20px 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 2.2rem;
+            }
+            .btn {
+                width: 80%;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>AhhPitt</h1>
-    <p>Pitt's MyPitt system is genuinely super dumb, especially the double authentication.</p>
-    <p>AhhPitt is a demo for a better Pitt convenience system. It includes guidance on food, news, course selection, and some little random games to help new students get to know the campus.</p>
-    <p>The data are collected from PittAPI</p>
+    <header>
+        <h1>AhhPitt</h1>
+        <p>Pitt's MyPitt system is genuinely super dumb, especially the double authentication.</p>
+        <p>AhhPitt is a demo for a better Pitt convenience system. It includes guidance on food, news, course selection, and some little random games to help new students get to know the campus.</p>
+        <p>The data are collected from PittAPI.</p>
+    </header>
 
-    <a class="btn" href="{% url 'news' %}">What's new</a>
-    <a class="btn" href="{% url 'dining' %}">Dining halls</a>
-    <a class="btn" href="{% url 'grad_requirements' %}">Graduation Requirements</a>
-    <a class="btn" href="{% url 'pitt_game' %}">Pitt Student Simulator</a>
+    <div class="btn-container">
+        <a class="btn" href="{% url 'news' %}">What's New</a>
+        <a class="btn" href="{% url 'dining' %}">Dining Halls</a>
+        <a class="btn" href="{% url 'grad_requirements' %}">Graduation Requirements</a>
+        <a class="btn" href="{% url 'pitt_game' %}">Pitt Student Simulator</a>
+    </div>
 
+    <footer>
+        &copy; 2025 AhhPitt Demo | Built for Pitt Students
+    </footer>
 </body>
 </html>

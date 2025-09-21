@@ -1,15 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>Pitt News</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1 { color: #333; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin-bottom: 10px; }
-        a { text-decoration: none; color: #0073e6; }
-        a:hover { text-decoration: underline; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #e6f0ff, #d0e4ff); /* 明亮高科技背景 */
+            color: #111;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #003DA5; /* Pitt Blue */
+            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        li {
+            margin-bottom: 15px;
+            background: #ffffff; /* 白色卡片 */
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,61,165,0.1);
+            transition: all 0.3s ease;
+        }
+
+        li:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,61,165,0.2);
+        }
+
+        a {
+            text-decoration: none;
+            color: #FFB81C; /* Pitt Gold */
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #003DA5; /* Pitt Blue hover */
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            li {
+                padding: 12px 15px;
+            }
+
+            a {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>

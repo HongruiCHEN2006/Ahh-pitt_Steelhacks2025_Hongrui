@@ -24,8 +24,9 @@ def news_view(request):
         # 异常时
         if not news_data:
             news_data = [
-                {"title": "PittAPI not working", "link": "#"},
-                {"title": "I swore", "link": "#"}
+                {"title": "PittAPI is not working", "link": "#"},
+                {"title": "So here are some example news", "link": "#"},
+                {"title": "Breaking! A freshman made the most miserable code ever on steelhacks on his own", "link": "#"}
             ]
 
     processed_news = []
