@@ -24,20 +24,24 @@
       flex: 1;
       height: 100vh;
     }
+    .highlight {
+      border-radius: 4px;
+      padding: 2px 4px;
+      color: #000;
+    }
   </style>
 </head>
 <body>
   <div id="sidebar">
     <h3>选择学院</h3>
-    <label><input type="checkbox" class="school" value="artsci" checked> Arts & Sciences</label><br>
-    <label><input type="checkbox" class="school" value="business" checked> Business</label><br>
-    <label><input type="checkbox" class="school" value="engineering" checked> Engineering</label><br>
+    <label><input type="checkbox" class="school" value="artsci"> Arts & Sciences</label><br>
+    <label><input type="checkbox" class="school" value="business"> Business</label><br>
+    <label><input type="checkbox" class="school" value="engineering"> Engineering</label><br>
   </div>
 
   <div id="mindmap"></div>
 
   <script>
-    // 各学院数据
     const data = {
       artsci: {
         id: "artsci",
@@ -47,7 +51,8 @@
             id: "artsci-gened",
             topic: "General Education (需要3门)",
             children: [
-              { id: "engcmp0200", topic: "ENGCMP 0200 - Seminar in Composition" },
+              
+            { id: "engcmp0200", topic: "ENGCMP 0200 - Seminar in Composition" },
               { id: "stat0200", topic: "STAT 0200 - Basic Statistics" }
             ]
           },
@@ -70,7 +75,8 @@
             topic: "Core Courses (需要5门)",
             children: [
               { id: "busacc0030", topic: "BUSACC 0030 - Financial Accounting" },
-              { id: "busbis1060", topic: "BUSBIS 1060 - Data Analytics" }
+              { id: "busbis1060", topic: "BUSBIS 1060 - Data Analytics" },
+              { id: "stat0200", topic: "STAT 0200 - Basic Statistics" }
             ]
           },
           {
@@ -99,17 +105,61 @@
             id: "engr-math",
             topic: "Math/Science (需要2门)",
             children: [
-              { id: "math0220", topic: "MATH 0220 - Calculus I" }
+              { id: "math0220", topic: "MATH 0220 - Calculus I" },
+              { id: "stat0200", topic: "STAT 0200 - Basic Statistics" },
+              { id: "engr0131", topic: "ENGR 0131 - Thermodynamics" }
             ]
           }
         ]
       }
     };
 
-    let jm; // mindmap 实例
+    const highlightColors = ['#ffc0cb', '#ffeb99', '#99ffcc', '#99ccff', '#ff99cc']; // 循环颜色
+    let jm;
 
     function renderMindMap(selectedSchools) {
-      const children = selectedSchools.map(school => data[school]);
+      const courseCount = {};
+      const courseRenderCount = {};
+      const courseColors = {}; // 分配给每门重复课程的颜色
+      let colorIndex = 0;
+      let idsToHighlight = [];
+      let colorsToHighlight = [];
+
+      // 统计课程总出现次数
+      selectedSchools.forEach(school => {
+        data[school].children.forEach(category => {
+          category.children.forEach(course => {
+            courseCount[course.id] = (courseCount[course.id] || 0) + 1;
+          });
+        });
+      });
+
+      const children = selectedSchools.map(school => {
+        const schoolNode = JSON.parse(JSON.stringify(data[school]));
+        schoolNode.children.forEach(category => {
+          category.children.forEach(course => {
+            const baseId = course.id;
+            courseRenderCount[baseId] = (courseRenderCount[baseId] || 0) + 1;
+            const renderNum = courseRenderCount[baseId];
+
+            // 生成唯一 id
+            course.id = baseId + "_r" + renderNum;
+
+            // 如果课程重复，分配颜色并高亮
+            if (courseCount[baseId] > 1) {
+              if (!courseColors[baseId]) {
+                courseColors[baseId] = highlightColors[colorIndex % highlightColors.length];
+                colorIndex++;
+              }
+              if (renderNum > 1) course.topic += " *";
+              idsToHighlight.push(course.id);
+              colorsToHighlight.push(courseColors[baseId]);
+            }
+          });
+        });
+        return schoolNode;
+      });
+
       const mind = {
         meta: { name: "GradCourses", author: "demo", version: "1.0" },
         format: "node_tree",
@@ -127,37 +177,25 @@
           container: 'mindmap',
           theme: 'primary',
           editable: true,
-          mode: 'down'   // 树状竖向展开
+          mode: 'down',
+          support_html: true
         });
         jm.show(mind);
       }
+
+      for (let i = 0; i < idsToHighlight.length; i++) {
+        jm.set_node_color(idsToHighlight[i], colorsToHighlight[i], "#000000");
+      }
     }
 
-    // 初始渲染
-    const defaultSchools = ["artsci", "business", "engineering"];
-    renderMindMap(defaultSchools);
+    // 初始无勾选
+    renderMindMap([]);
 
-    // 勾选功能
     document.querySelectorAll(".school").forEach(cb => {
       cb.addEventListener("change", () => {
         const selected = Array.from(document.querySelectorAll(".school:checked")).map(cb => cb.value);
         renderMindMap(selected);
       });
-    });
-
-    // 添加折叠按钮功能（大分类）
-    document.addEventListener("click", (e) => {
-      if (e.target.tagName === "JMNODE") {
-        const nodeId = e.target.getAttribute("nodeid");
-        const node = jm.get_node(nodeId);
-        if (node && node.children && node.children.length > 0) {
-          if (jm.is_node_expanded(node)) {
-            jm.collapse_node(nodeId); // 折叠
-          } else {
-            jm.expand_node(nodeId);   // 展开
-          }
-        }
-      }
     });
   </script>
 </body>

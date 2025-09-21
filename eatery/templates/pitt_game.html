@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Pitt Student Simulator</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#071025;
+    --accent:#2b6cb0;
+    --muted:#9aa6b2;
+    --glass: rgba(255,255,255,0.04);
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025 0%, #0b1220 60%);color:#e6eef6;font-family:Inter,system-ui,Arial;display:flex;align-items:center;justify-content:center;}
+  .app {
+    width:min(1100px,96vw);
+    height:min(780px,94vh);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:14px;
+    box-shadow: 0 10px 40px rgba(2,6,23,0.7);
+    padding:18px;
+    box-sizing:border-box;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  header{ display:flex;align-items:center;justify-content:space-between; }
+  h1{margin:0;font-size:22px;letter-spacing:0.6px}
+  .sub { color:var(--muted); font-size:13px; }
+
+  /* main panels */
+  .panel { flex:1; display:none; padding:12px; }
+  .panel.active { display:block; }
+
+  /* Start Screen layout */
+  .start-grid { display:grid; grid-template-columns:1fr 320px; gap:18px; height:100%; align-items:start; }
+  .left {
+    background:var(--glass); border-radius:10px; padding:16px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .sl { display:flex; align-items:center; gap:10px; }
+  input[type=range]{ width:100%; accent-color:var(--accent); }
+  .slider-val { min-width:36px; text-align:center; font-weight:600; color:#fff; }
+
+  .start-right {
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center;
+  }
+  .big-btn { background:var(--accent); color:#fff; padding:12px 20px; border-radius:10px; border:none; cursor:pointer; font-weight:700; font-size:16px; box-shadow:0 6px 18px rgba(43,108,176,0.18); }
+  .ghost-btn { background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted); padding:10px 14px; border-radius:8px; cursor:pointer; }
+
+  /* Game screen */
+  .game-center { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; height:100%; text-align:center; }
+  #game-text { font-size:20px; max-width:900px; line-height:1.4; }
+  #choices { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+  .choice-btn { min-width:240px; padding:14px 18px; border-radius:12px; font-size:16px; border:none; cursor:pointer; background:rgba(255,255,255,0.04); color:#eaf2ff; box-shadow: 0 6px 18px rgba(3,8,20,0.5); }
+  .choice-btn:hover{transform:translateY(-3px); transition:transform .12s}
+
+  /* status - moved to bottom center (more prominent) */
+  .status-card {
+    position:absolute;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(255,255,255,0.03);
+    padding:14px 18px;
+    border-radius:12px;
+    min-width:360px;
+    box-shadow:0 10px 30px rgba(2,6,20,0.6);
+    font-weight:700;
+    display:flex;
+    gap:18px;
+    justify-content:center;
+    align-items:center;
+    z-index:20;
+  }
+  .status-card p { margin:0; font-size:16px; color:#f7fbff; }
+
+  /* history remains right bottom */
+  .history-card { position:absolute; bottom:8px; right:8px; background:rgba(255,255,255,0.02); padding:12px; border-radius:10px; max-width:320px; max-height:220px; overflow:auto; }
+  .history-card h4 { margin:6px 0 8px 0; }
+
+  /* debuff moved to top-right corner (small) */
+  #debuff-bar { position:absolute; top:18px; right:18px; background:rgba(200,40,40,0.08); padding:8px 12px; border-radius:10px; color:#ffd6d6; font-weight:700; font-size:13px; z-index:25; }
+
+  /* semester top */
+  #semester-display { position:absolute; top:18px; left:50%; transform:translateX(-50%); background:rgba(255,255,255,0.02); padding:8px 12px; border-radius:10px; font-weight:700; }
+
+  /* achievements overlay */
+  .ach-list { list-style:none; padding:0; margin:0; }
+  .ach-list li { padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.02); color:var(--muted); }
+
+  /* game over */
+  .game-over { display:flex; flex-direction:column; align-items:center; gap:10px; }
+
+  /* center result popup */
+  #result-popup { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(10,18,30,0.95); padding:18px 22px; border-radius:12px; display:none; text-align:center; min-width:340px; box-shadow:0 20px 60px rgba(2,6,22,0.7); font-size:18px; }
+  #result-popup.show { display:block; }
+
+  /* responsive */
+  @media (max-width:900px){
+    .start-grid{ grid-template-columns:1fr; }
+    .status-card{ display:none; }
+    .history-card{ display:none; }
+    .choice-btn{ min-width:180px; }
+    .app{ padding:12px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>Pitt Student Simulator</h1>
+    <!-- <div class="sub">A tiny simulation — no DB, achievements are per-page-run only</div> -->
+  </header>
+
+  <!-- Start Screen -->
+  <main id="start-screen" class="panel active">
+    <div class="start-grid">
+      <div class="left">
+        <div><strong>Set your starting stats</strong></div>
+
+        <div class="sl">Financial Background (coin): <input id="eco" type="range" min="1" max="10" value="5"><div class="slider-val" id="eco-val">5</div></div>
+        <div class="sl">Energy (initial energy): <input id="energy" type="range" min="1" max="10" value="5"><div class="slider-val" id="energy-val">5</div></div>
+        <div class="sl">IQ (wisdom): <input id="iq" type="range" min="1" max="10" value="5"><div class="slider-val" id="iq-val">5</div></div>
+        <div class="sl">Social Skills (initial social): <input id="social" type="range" min="1" max="10" value="5"><div class="slider-val" id="social-val">5</div></div>
+
+        <label style="margin-top:8px;"><input id="intl" type="checkbox"> International Student?</label>
+
+        <p class="sub" style="margin-top:12px">Note: If you refresh the page, achievements won't be saved. Don't think about DB.</p>
+      </div>
+
+      <div class="start-right">
+        <div style="font-size:18px;font-weight:700">Ready to start your Pitt life?</div>
+        <!-- <div class="sub">Music: 111.mp4 (autoplay if your browser allows)</div> -->
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="big-btn" onclick="startGame()">Start Game</button>
+          <!-- Achievements from start: ensure Back to Start works -->
+          <button class="ghost-btn" onclick="showAchievementsFromStart()">Achievements</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Game Screen -->
+  <main id="game-screen" class="panel">
+    <div id="semester-display"></div>
+
+    <div class="game-center">
+      <div id="game-text">—</div>
+      <div id="choices"></div>
+    </div>
+
+    <div id="result-popup"></div>
+
+    <!-- status moved to bottom center -->
+    <div class="status-card" id="status-card">
+      <p>HP: <span id="hp">10</span></p>
+      <p>SAN: <span id="san">10</span></p>
+      <p>Social: <span id="socialEnergy">0</span></p>
+      <p>Coin: <span id="coin">0</span></p>
+      <p>Wisdom: <span id="wisedom">0</span></p>
+    </div>
+
+    <!-- history remains right bottom -->
+    <div class="history-card">
+      <h4>History</h4>
+      <ul id="history" style="list-style:none;padding:0;margin:0;"></ul>
+    </div>
+
+    <!-- debuff in top-right corner -->
+    <div id="debuff-bar"></div>
+
+    <!-- achievement button moved to top-left -->
+    <button id="achievement-btn" style="position:absolute; top:18px; left:18px;" onclick="showAchievements()">Achievements</button>
+  </main>
+
+  <!-- Achievements Screen -->
+  <main id="achievements-screen" class="panel">
+    <h2>Achievements</h2>
+    <p style="color:var(--muted); margin-top:6px">Don't refresh the page or it won't be saved. Don't even think about database.</p>
+    <ul id="achievements-list" class="ach-list" style="margin-top:10px"></ul>
+    <div style="margin-top:12px">
+      <button class="ghost-btn" onclick="backToGame()">Back to Game</button>
+      <button class="ghost-btn" onclick="backToStart()">Back to Start</button>
+    </div>
+  </main>
+
+  <!-- Game Over Screen -->
+  <main id="game-over-screen" class="panel">
+    <div class="game-over">
+      <h2>Game Over</h2>
+      <p id="lose-reason" style="color:#ffd6d6;font-weight:700"></p>
+      <h4>Achievements this run</h4>
+      <ul id="gameover-achievements" class="ach-list"></ul>
+      <img id="gameover-image" style="max-width:60%;border-radius:8px;margin-top:6px" src="" alt="">
+      <div style="margin-top:12px">
+        <!-- Back to Start (no refresh) -->
+        <button class="big-btn" onclick="backToStart()">Back to Start</button>
+      </div>
+    </div>
+  </main>
+
+  <audio id="bg-music" src="111.mp4" loop></audio>
+</div>
+
+<script>
+/* =========================
+   Keep existing logic intact.
+   Only interface positions/styles changed.
+   ========================= */
+
+const state = {
+  hp: 10,
+  san: 10,
+  socialEnergy: 0,
+  coin: 0,
+  wisedom: 0,
+  semester: 0,
+  initialSocial: 5,
+  initialEco: 5,
+  intl: false,
+  history: [],
+  achievements: [],
+  gameStarted: false
+};
+
+let batchEventCount = 0;
+let totalEventsPlayed = 0;
+let eventsPool = [];
+let fixedFirstEventPlayed = false;
+
+/* Elements (same ids as before) */
+const el = {
+  start: document.getElementById('start-screen'),
+  game: document.getElementById('game-screen'),
+  ach: document.getElementById('achievements-screen'),
+  over: document.getElementById('game-over-screen'),
+  gameText: document.getElementById('game-text'),
+  choices: document.getElementById('choices'),
+  popup: document.getElementById('result-popup'),
+  history: document.getElementById('history'),
+  semester: document.getElementById('semester-display'),
+  debuff: document.getElementById('debuff-bar'),
+  hp: document.getElementById('hp'),
+  san: document.getElementById('san'),
+  socialEnergy: document.getElementById('socialEnergy'),
+  coin: document.getElementById('coin'),
+  wisedom: document.getElementById('wisedom'),
+  achievementsList: document.getElementById('achievements-list'),
+  gameoverAchievements: document.getElementById('gameover-achievements'),
+  loseReason: document.getElementById('lose-reason'),
+  gameoverImage: document.getElementById('gameover-image')
+};
+
+/* slider live values (unchanged) */
+['eco','energy','iq','social'].forEach(id=>{
+  const s = document.getElementById(id);
+  const v = document.getElementById(id+'-val');
+  if(s && v){
+    s.addEventListener('input', e => v.innerText = e.target.value);
+  }
+});
+
+/* small helper: show result popup for 1s */
+function showResult(text, cb){
+  el.popup.innerText = text;
+  el.popup.classList.add('show');
+  setTimeout(()=>{
+    el.popup.classList.remove('show');
+    if(cb) cb();
+  }, 1500);
+}
+
+/* history & achievements helpers (unchanged) */
+function addHistory(text){
+  state.history.push(text);
+  const li = document.createElement('li'); li.innerText = text;
+  el.history.prepend(li);
+}
+function addAchievement(name){
+  if(!state.achievements.includes(name)){
+    state.achievements.push(name);
+    addHistory("Achievement unlocked: " + name);
+  }
+}
+
+/* update status UI (still uses same ids) */
+function updateStatus(){
+  el.hp.innerText = state.hp;
+  el.san.innerText = state.san;
+  el.socialEnergy.innerText = Number(state.socialEnergy.toFixed(2));
+  el.coin.innerText = state.coin;
+  el.wisedom.innerText = state.wisedom;
+  el.semester.innerText = `Semester: ${state.semester}`;
+  el.debuff.innerText = state.intl ? "International Student Debuff: -3 Coin, -1 Social Energy" : "";
+}
+
+/* game over: no refresh anywhere */
+function gameOver(reason, img=''){
+  addHistory("Game Over: " + reason);
+  el.loseReason.innerText = reason;
+  el.gameoverImage.src = img || '';
+  el.gameoverAchievements.innerHTML = '';
+  state.achievements.forEach(a=>{
+    const li = document.createElement('li'); li.innerText = a; el.gameoverAchievements.appendChild(li);
+  });
+  // show game over screen (no reload)
+  el.game.classList.remove('active');
+  el.ach.classList.remove('active');
+  el.over.classList.add('active');
+}
+
+/* lose checks (same messages as requested) */
+function checkLose(){
+  if(state.san < 0){
+    addAchievement("Uh...co..llege uh...");
+    gameOver("Sanity < 0 (You couldn't handle college).");
+    return true;
+  }
+  if(state.socialEnergy < 0){
+    addAchievement("Mom, I'm going home.");
+    gameOver("Social Energy < 0");
+    return true;
+  }
+  if(state.coin < 0){
+    addAchievement("Poor guy. Bankrupted.");
+    gameOver("Coin < 0");
+    return true;
+  }
+  if(state.hp <= 0){
+    addAchievement("U Dead");
+    gameOver("HP <= 0");
+    return true;
+  }
+  return false;
+}
+
+/* Weighted random helper (unchanged) */
+function weightedRandom(items){
+  const total = items.reduce((s,i)=>s+i.weight,0);
+  let r = Math.random()*total;
+  for(const it of items){
+    if(r < it.weight) return it.fn;
+    r -= it.weight;
+  }
+  return items[items.length-1].fn;
+}
+
+/* Build event pool (weights preserved) */
+function buildEventsPool(){
+  const pool = [];
+  const push = (fn, w=1) => pool.push({fn, weight:w});
+  push(eventCareerFair, 1);
+  push(eventEatery, 1);
+  push(eventSteelHacks, 1);
+  push(eventDance, 1);
+  push(eventPartTimeJob, 1);
+  push(eventHomework, 3); // 3x
+  push(eventPeacefulDay, 2); // 2x
+  push(eventExam, 2); // 2x
+  return pool;
+}
+
+/* Start game (restore previous flow exactly) */
+function startGame(){
+  // read sliders values (the slider IDs exist in DOM)
+  const eco = parseInt(document.getElementById('eco').value);
+  const energy = parseInt(document.getElementById('energy').value);
+  const iq = parseInt(document.getElementById('iq').value);
+  const social = parseInt(document.getElementById('social').value);
+  const intl = document.getElementById('intl').checked;
+
+  state.coin = eco;
+  state.initialEco = eco;
+  state.initialSocial = social;
+  state.socialEnergy = social;
+  state.wisedom = iq;
+  state.hp = 10;
+  state.san = 10;
+  state.semester = 0;
+  state.history = [];
+  state.achievements = state.achievements || state.achievements; // keep achievements array (do not clear by default)
+  state.intl = intl;
+  state.gameStarted = true;
+  batchEventCount = 0;
+  totalEventsPlayed = 0;
+  fixedFirstEventPlayed = false;
+
+  if(state.intl){
+    state.coin -= 3;
+    state.socialEnergy -= 1;
+  }
+
+  eventsPool = buildEventsPool();
+
+  el.start.classList.remove('active');
+  el.over.classList.remove('active');
+  el.ach.classList.remove('active');
+  el.game.classList.add('active');
+
+  updateStatus();
+  addHistory("Game started. Initial stats set.");
+  // trigger first event via starter
+  runNextEventStarter();
+}
+
+/* auto social gain */
+function autoSocialGainRecord(){
+  const gain = state.initialSocial * 0.1;
+  state.socialEnergy += gain;
+  const gainText = gain % 1 === 0 ? gain.toFixed(0) : gain.toFixed(1);
+  const note = `(0.1*initial social: ${gain.toFixed(1)})`;
+  addHistory(`You gained ${gainText} social energy ${note}`);
+  updateStatus();
+}
+
+/* run next event starter (keeps original logic) */
+function runNextEventStarter(){
+  autoSocialGainRecord();
+  if(checkLose()) return;
+
+  if(!fixedFirstEventPlayed){
+    fixedFirstEventPlayed = true;
+    totalEventsPlayed++;
+    batchEventCount++;
+    return firstWeedEvent();
+  }
+
+  // after 4 events in batch -> semester +1 (user requested: every 4 events = 1 semester)
+  // NOTE: previously we had semester +=4 per 4 events; user requested "每4个事件一个学期"
+  // The last instruction from user: "每4个事件一个学期" — so we implement +1 semester per 4 events.
+  if(batchEventCount >= 3){
+    state.semester += 1;
+    batchEventCount = 0;
+    addHistory(`Semester advanced by +1 -> Semester: ${state.semester}`);
+    updateStatus();
+    if(state.semester >= 8){
+      addAchievement("Graduated");
+      el.game.classList.remove('active');
+      el.over.classList.add('active');
+      el.loseReason.innerText = "You graduated successfully! 🎓";
+      el.gameoverImage.src = "";
+      el.gameoverAchievements.innerHTML = "";
+      state.achievements.forEach(a=>{
+        const li = document.createElement('li'); li.innerText = a; el.gameoverAchievements.appendChild(li);
+      });
+      return;
+    }
+  }
+
+  // pick weighted random event
+  const chosen = weightedRandom(eventsPool);
+  totalEventsPlayed++;
+  batchEventCount++;
+  chosen();
+}
+
+/* UI present helper: apply effects, show central result, delay 1s then continue */
+function presentEvent({text, options}){
+  el.gameText.innerText = text;
+  el.choices.innerHTML = '';
+  options.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerText = opt.text;
+    btn.onclick = () => {
+      // apply effects
+      const effects = opt.effects || {};
+      if(effects.wisedom) state.wisedom += effects.wisedom;
+      if(effects.san) state.san += effects.san;
+      if(effects.hp) state.hp += effects.hp;
+      if(effects.socialEnergy) state.socialEnergy += effects.socialEnergy;
+      if(effects.coin) state.coin += effects.coin;
+      if(effects.ach) addAchievement(effects.ach);
+
+      // build message
+      let messages = [];
+      if(effects.wisedom) messages.push(`Wisdom ${effects.wisedom>0?'+':''}${effects.wisedom}`);
+      if(effects.san) messages.push(`Sanity ${effects.san>0?'+':''}${effects.san}`);
+      if(effects.hp) messages.push(`HP ${effects.hp>0?'+':''}${effects.hp}`);
+      if(effects.socialEnergy) messages.push(`Social Energy ${effects.socialEnergy>0?'+':''}${effects.socialEnergy}`);
+      if(effects.coin) messages.push(`Coin ${effects.coin>0?'+':''}${effects.coin}`);
+      if(opt.note) messages.push(opt.note);
+
+      const resultText = messages.length ? messages.join(' · ') : 'Nothing happened';
+      // show central popup and after 1s continue or handle gameover post
+      showResult(resultText, () => {
+        updateStatus();
+        if(opt.post && opt.post.type === 'gameover'){
+          addAchievement(opt.effects && opt.effects.ach ? opt.effects.ach : (opt.post.ach || ""));
+          gameOver(opt.post.reason || 'Game Over', opt.post.img || '');
+          return;
+        }
+        if(checkLose()) return;
+        // continue to next event
+        runNextEventStarter();
+      });
+
+      addHistory(`${text} -> You chose: "${opt.text}". ${resultText}`);
+    };
+    el.choices.appendChild(btn);
+  });
+}
+
+/* ===========================
+   Events (kept same as before)
+   =========================== */
+
+function firstWeedEvent(){
+  const ev = {
+    text: "Wow! A new Pitt student just spawned! what are u gonna do first?",
+    options: [
+      { text: "Exploring around, networking,studying", effects: {} },
+      { text: "Yeah college! Try some weed and beer", effects: { ach: 'Dumbass' }, post: { type:'gameover', reason:'Seriously?', img: '' } }
+    ]
+  };
+  presentEvent(ev);
+}
+
+function eventCareerFair(){
+  presentEvent({
+    text: "Event: Pitt Career Fair. Will you attend?",
+    options:[
+      { text: "Attend", effects: { wisedom:+2, socialEnergy:-2 }  },
+      { text: "Skip", effects: { wisedom:-1 }}
+    ]
+  });
+}
+
+function eventHomework(){
+  presentEvent({
+    text: "Event: Homework Assignment. Professor gives many STAT1100 exercises. Option?",
+    options:[
+      { text: "Do it honestly", effects: { wisedom:+1, san:-2 } },
+      { text: "Use AI", effects: {}},
+      { text: "Protest to professor", effects: {}, post: { type:'gameover', reason:'Opps', img:'https://via.placeholder.com/640x320?text=Protest+Failed' }, note: ' You got fired.' }
+    ]
+  });
+}
+
+function eventEatery(){
+  // custom handling for random san on first two opts
+  el.gameText.innerText = "You're hungry. What's your choice?";
+  el.choices.innerHTML = '';
+  const opts = [
+    { text: "Eat at the eatery", idx:0 },
+    { text: "Cook for yourself", idx:1 },
+    { text: "Order delivery", idx:2 }
+  ];
+  opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerText = opt.text;
+    btn.onclick = () => {
+      if(opt.idx === 0 || opt.idx === 1){
+        const delta = Math.floor(Math.random()*5)-2;
+        state.san += delta;
+        const note = `Random change -2~+2 SAN. You ${delta>=0?'gained':'lost'} ${Math.abs(delta)} SAN.`;
+        showResult(note, ()=> {
+          updateStatus();
+          if(checkLose()) return;
+          addHistory(`${el.gameText.innerText} -> ${opt.text}. ${note}`);
+          runNextEventStarter();
+        });
+      } else {
+        state.coin -= 1;
+        state.san += 1;
+        const note = 'Coin -1 · San +1';
+        showResult(note, ()=> {
+          updateStatus();
+          if(checkLose()) return;
+          addHistory(`${el.gameText.innerText} -> ${opt.text}. ${note}`);
+          runNextEventStarter();
+        });
+      }
+    };
+    el.choices.appendChild(btn);
+  });
+}
+
+function eventSteelHacks(){
+  presentEvent({
+    text: "SteelHacks (famous event) is happening. Will you join?",
+    options:[
+      { text: "Participate fully", effects: { wisedom:+2, san:-1 } },
+      { text: "Don't participate", effects: { wisedom:-1 } },
+      { text: "Register but only come for pizza", effects: { wisedom:-1, san:+1 } }
+    ]
+  });
+}
+
+function eventDance(){
+  presentEvent({
+    text: "There's a party — your roommate asks you to join. Do you go?",
+    options:[
+      { text: "Go to the dance", effects: { socialEnergy:-1, san:+1 } },
+      { text: "Don't go", effects: {} }
+    ]
+  });
+}
+
+function eventPeacefulDay(){
+  presentEvent({
+    text: "A calm day with no class. What's your plan?",
+    options:[
+      { text: "Library (study)", effects: { wisedom:+1 } },
+      { text: "Club activities", effects: { wisedom:+2, socialEnergy:-1 } },
+      { text: "Ahh yeah college — weeds & beer", effects: { ach: 'Dumbass' }, post: { type:'gameover', reason:'Dumbass: you ruined it with weed & beer', img:'' } }
+    ]
+  });
+}
+
+function eventPartTimeJob(){
+  presentEvent({
+    text: "Part-time job opportunity. Do you accept?",
+    options:[
+      { text: "Accept", effects: { coin:+1 } },
+      { text: "Decline", effects: {} }
+    ]
+  });
+}
+
+function eventExam(){
+  presentEvent({
+    text: "Exam time. How do you handle it?",
+    options:[
+      { text: "Ahhhhhhhhh(screaming)", effects: { san:-1, wisedom:-3 } },
+      { text: "Study a bit", effects: { san:-2, wisedom:-1 } },
+      { text: "Study hard hardly study", effects: { san:-3, wisedom:+1 } }
+    ]
+  });
+}
+
+/* build pool and pick helper (used in startGame) */
+function pickRandomEventFromPool(){
+  return weightedRandom(eventsPool);
+}
+
+/* show achievements (from in-game) */
+function showAchievements(){
+  el.achievementsList.innerHTML = '';
+  state.achievements.forEach(a=>{
+    const li = document.createElement('li'); li.innerText = a; el.achievementsList.appendChild(li);
+  });
+  el.game.classList.remove('active');
+  el.start.classList.remove('active');
+  el.over.classList.remove('active');
+  el.ach.classList.add('active');
+}
+
+/* show achievements from start screen (allow return to start) */
+function showAchievementsFromStart(){
+  el.achievementsList.innerHTML = '';
+  state.achievements.forEach(a=>{
+    const li = document.createElement('li'); li.innerText = a; el.achievementsList.appendChild(li);
+  });
+  el.start.classList.remove('active');
+  el.over.classList.remove('active');
+  el.ach.classList.add('active');
+}
+
+/* back to game (only if started) */
+function backToGame(){
+  if(state.gameStarted){
+    el.ach.classList.remove('active');
+    el.game.classList.add('active');
+  } else {
+    alert("Game has not started yet!");
+  }
+}
+
+/* back to start (no refresh, achievements persist in memory) */
+function backToStart(){
+  el.ach.classList.remove('active');
+  el.over.classList.remove('active');
+  el.game.classList.remove('active');
+  el.start.classList.add('active');
+}
+
+/* initialize event pool now */
+eventsPool = buildEventsPool();
+
+/* try autoplay music */
+const bg = document.getElementById('bg-music');
+try { bg.play().catch(()=>{}); } catch(e) {}
+
+updateStatus();
+
+/* expose startGame globally for button */
+window.startGame = startGame;
+window.showAchievementsFromStart = showAchievementsFromStart;
+window.showAchievements = showAchievements;
+window.backToGame = backToGame;
+window.backToStart = backToStart;
+
+</script>
+</body>
+</html>

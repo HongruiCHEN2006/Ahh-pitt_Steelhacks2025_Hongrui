@@ -68,6 +68,8 @@ def grad_requirements(request):
 
     return render(request, "requirements.html", {"requirements": requirements})
 
+def pitt_game(request):
+    return render(request, 'pitt_game.html')
 
 
 
